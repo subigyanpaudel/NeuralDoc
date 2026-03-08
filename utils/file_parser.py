@@ -31,7 +31,7 @@ def validate_file(
 
     if ext not in SUPPORTED_EXTENSIONS:
         return False, (
-            f"❌ Unsupported file type: **{ext}**\n"
+            f"Unsupported file type: **{ext}**\n"
             f"Supported formats: {', '.join(sorted(SUPPORTED_EXTENSIONS))}"
         )
 
@@ -39,12 +39,12 @@ def validate_file(
         max_bytes = MAX_FILE_SIZE_MB * 1024 * 1024
         if file_size > max_bytes:
             return False, (
-                f"❌ File too large: **{file_size / (1024*1024):.1f} MB**\n"
+                f"File too large: **{file_size / (1024*1024):.1f} MB**\n"
                 f"Maximum allowed: {MAX_FILE_SIZE_MB} MB"
             )
 
         if file_size == 0:
-            return False, "❌ File is empty."
+            return False, "File is empty."
 
     return True, ""
 
@@ -80,18 +80,18 @@ async def save_uploaded_file(
 
 
 def get_file_type_emoji(extension: str) -> str:
-    """Return an emoji for a file type."""
-    emoji_map = {
-        ".pdf": "📄",
-        ".docx": "📝",
-        ".txt": "📃",
-        ".pptx": "📊",
-        ".xlsx": "📈",
-        ".xls": "📈",
-        ".csv": "📋",
-        ".md": "📑",
+    """Return a label for a file type (emojis removed)."""
+    label_map = {
+        ".pdf": "[PDF]",
+        ".docx": "[DOCX]",
+        ".txt": "[TXT]",
+        ".pptx": "[PPTX]",
+        ".xlsx": "[XLSX]",
+        ".xls": "[XLS]",
+        ".csv": "[CSV]",
+        ".md": "[MD]",
     }
-    return emoji_map.get(extension.lower(), "📁")
+    return label_map.get(extension.lower(), "[FILE]")
 
 
 def cleanup_session_files(session_id: str) -> None:

@@ -63,12 +63,12 @@ async def on_chat_start():
 
     # Welcome message
     welcome_text = (
-        "# 🧠 Welcome to NeuralDoc!\n\n"
+        "# Welcome to NeuralDoc!\n\n"
         "I'm your AI document assistant. Upload documents and ask me anything about them.\n\n"
-        "### 📎 Supported Formats\n"
+        "### Supported Formats\n"
         "PDF, DOCX, TXT, PPTX, XLSX, CSV, Markdown\n\n"
-        "### 🚀 Getting Started\n"
-        "1. **Upload** one or more documents using the 📎 button below\n"
+        "### Getting Started\n"
+        "1. **Upload** one or more documents using the attach button below\n"
         "2. **Wait** for indexing to complete\n"
         "3. **Ask** any question about your documents!\n\n"
         "---\n"
@@ -96,7 +96,7 @@ async def on_message(message: cl.Message):
         await _handle_query(message.content.strip(), session_id)
     else:
         await cl.Message(
-            content="Please upload a document or ask a question! 💬"
+            content="Please upload a document or ask a question! (No message content)"
         ).send()
 
 
@@ -114,7 +114,7 @@ async def _handle_file_uploads(elements: list, session_id: str) -> None:
     failed_files: list[str] = []
 
     # Processing status message
-    status_msg = cl.Message(content="⏳ Processing uploaded files...")
+    status_msg = cl.Message(content="Processing uploaded files...")
     await status_msg.send()
 
     for element in elements:
@@ -150,8 +150,8 @@ async def _handle_file_uploads(elements: list, session_id: str) -> None:
             await vector_store.add_documents(chunks)
 
             ext = Path(filename).suffix.lower()
-            emoji = get_file_type_emoji(ext)
-            processed_files.append(f"{emoji} **{filename}** — {len(chunks)} chunks")
+            label = get_file_type_emoji(ext)
+            processed_files.append(f"{label} **{filename}** — {len(chunks)} chunks")
             uploaded_files.append(filename)
 
             logger.info(
@@ -173,14 +173,14 @@ async def _handle_file_uploads(elements: list, session_id: str) -> None:
     result_parts: list[str] = []
 
     if processed_files:
-        result_parts.append("### ✅ Documents Indexed Successfully\n")
+        result_parts.append("### Documents Indexed Successfully\n")
         result_parts.extend(processed_files)
         total_chunks = vector_store.get_document_count()
-        result_parts.append(f"\n\n📊 **Total chunks in knowledge base:** {total_chunks}")
-        result_parts.append("\n\n💬 You can now ask questions about your documents!")
+        result_parts.append(f"\n\n**Total chunks in knowledge base:** {total_chunks}")
+        result_parts.append("\n\n(No message content) You can now ask questions about your documents!")
 
     if failed_files:
-        result_parts.append("\n\n### ⚠️ Failed to Process\n")
+        result_parts.append("\n\n### Failed to Process\n")
         result_parts.extend(failed_files)
 
     # Update the status message
@@ -202,8 +202,8 @@ async def _handle_query(query: str, session_id: str) -> None:
     if not vector_store.has_documents():
         await cl.Message(
             content=(
-                "📭 **No documents indexed yet.**\n\n"
-                "Please upload one or more documents first using the 📎 button, "
+                "**No documents indexed yet.**\n\n"
+                "Please upload one or more documents first using the attach button, "
                 "then I can answer your questions!"
             )
         ).send()
@@ -229,7 +229,7 @@ async def _handle_query(query: str, session_id: str) -> None:
     except Exception as e:
         logger.error("Error generating response: %s", e)
         response_msg.content = (
-            "❌ **An error occurred while generating the response.**\n\n"
+            "An error occurred while generating the response.\n\n"
             f"Error: {str(e)}\n\n"
             "Please check your API key and try again."
         )
@@ -238,10 +238,10 @@ async def _handle_query(query: str, session_id: str) -> None:
 
     # Add source citations
     if sources:
-        citation_text = "\n\n---\n📚 **Sources:**\n"
+        citation_text = "\n\n---\n**Sources:**\n"
         for src in sources:
-            emoji = get_file_type_emoji(src.get("file_type", ""))
-            citation_text += f"- {emoji} {src['source']}\n"
+            label = get_file_type_emoji(src.get("file_type", ""))
+            citation_text += f"- {label} {src['source']}\n"
         response_msg.content += citation_text
         await response_msg.update()
 
@@ -260,7 +260,7 @@ async def on_chat_resume(thread):
 
     await cl.Message(
         content=(
-            "👋 **Welcome back!**\n\n"
+            "Welcome back!\n\n"
             "Your previous documents may still be available in the knowledge base. "
             "Feel free to upload new documents or ask questions!"
         )
