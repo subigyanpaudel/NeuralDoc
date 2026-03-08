@@ -16,9 +16,7 @@ python: 3.10.12 # Or the version you prefer and test with
 # Build command: Installs dependencies from requirements.txt
 buildCommand: "pip install -r requirements.txt"
 
-# Start command: Runs the Chainlit application, binding to all network interfaces and
-# using the port provided by Render via the $PORT environment variable.
-startCommand: "chainlit run app.py --host 0.0.0.0 --port $PORT"
+startCommand: "streamlit run app.py --server.port $PORT --server.address 0.0.0.0"
 
 # Optional: Environment variables for your application.
 # Make sure to set GOOGLE_API_KEY as a secret environment variable in Render's dashboard.
