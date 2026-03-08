@@ -13,6 +13,7 @@ langchain-huggingface>=0.0.3
 
 # ─── Vector Stores ──────────────────────────────────────────────────────────────
 chromadb>=0.4.0
+pysqlite3-binary
 faiss-cpu>=1.7.0
 
 # ─── Document Loaders ──────────────────────────────────────────────────────────

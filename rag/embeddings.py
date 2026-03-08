@@ -8,9 +8,12 @@ from langchain_core.embeddings import Embeddings
 
 from config import GOOGLE_API_KEY, GEMINI_EMBEDDING_MODEL, FALLBACK_EMBEDDING_MODEL
 
+import logging
+import streamlit as st
+
 logger = logging.getLogger(__name__)
 
-
+@st.cache_resource
 def get_embedding_function() -> Embeddings:
     """
     Return the best available embedding function.

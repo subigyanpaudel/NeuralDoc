@@ -50,6 +50,7 @@ class VectorStoreManager:
                 embedding_function=self.embedding_function,
                 persist_directory=self._chroma_path,
             )
+            # Ensure the collection exists and is flushed
             logger.info("ChromaDB initialized at %s", self._chroma_path)
         return self._chroma_store
 
@@ -154,9 +155,11 @@ class VectorStoreManager:
         """Check if any documents have been indexed."""
         try:
             chroma = self._get_chroma()
-            collection = chroma._collection
-            return collection.count() > 0
-        except Exception:
+            count = chroma._collection.count()
+            logger.info("Vector store document count: %d", count)
+            return count > 0
+        except Exception as e:
+            logger.error("Error checking document count: %s", e)
             return False
 
     def get_document_count(self) -> int:
