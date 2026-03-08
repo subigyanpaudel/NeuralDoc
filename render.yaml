@@ -1,0 +1,27 @@
+# render.yaml
+# This file configures a web service on Render to deploy the NeuralDoc application.
+
+# Service type: "web" for web applications
+type: web
+
+# Name of your service
+name: neuraldoc
+
+# Environment specific to Python applications
+env: python
+
+# The Python version to use (ensure it matches your local development setup, or adjust as needed)
+python: 3.10.12 # Or the version you prefer and test with
+
+# Build command: Installs dependencies from requirements.txt
+buildCommand: "pip install -r requirements.txt"
+
+# Start command: Runs the Chainlit application, binding to all network interfaces and
+# using the port provided by Render via the $PORT environment variable.
+startCommand: "chainlit run app.py --host 0.0.0.0 --port $PORT"
+
+# Optional: Environment variables for your application.
+# Make sure to set GOOGLE_API_KEY as a secret environment variable in Render's dashboard.
+envVars:
+  - key: GOOGLE_API_KEY
+    sync: false # Set to true if you store it in render.yaml, but it's recommended to manage secrets in Render UI.
