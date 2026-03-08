@@ -1,8 +1,3 @@
-"""
-NeuralDoc Configuration Module
-Centralized configuration for the multi-document RAG chat system.
-"""
-
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -12,7 +7,7 @@ load_dotenv()
 
 import google.generativeai as genai
 
-# ─── Base Paths ─────────────────────────────────────────────────────────────────
+# Base Paths 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 DOCUMENT_STORAGE_PATH = Path(os.getenv("DOCUMENT_STORAGE_PATH", str(DATA_DIR / "documents")))
@@ -24,7 +19,7 @@ DOCUMENT_STORAGE_PATH.mkdir(parents=True, exist_ok=True)
 VECTOR_DB_PATH.mkdir(parents=True, exist_ok=True)
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-# ─── Google Gemini ──────────────────────────────────────────────────────────────
+# Google Gemini 
 api_key = os.getenv("GOOGLE_API_KEY", "")
 if api_key:
     genai.configure(api_key=api_key)
@@ -32,24 +27,24 @@ GOOGLE_API_KEY = api_key
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 GEMINI_EMBEDDING_MODEL = "models/embedding-001"
 
-# ─── Chunking ───────────────────────────────────────────────────────────────────
+# Chunking 
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "1000"))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "200"))
 
-# ─── Embeddings ─────────────────────────────────────────────────────────────────
+# Embeddings 
 FALLBACK_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
-# ─── Retrieval ──────────────────────────────────────────────────────────────────
+# Retrieval 
 RETRIEVAL_TOP_K = int(os.getenv("RETRIEVAL_TOP_K", "5"))
 
-# ─── File Upload ────────────────────────────────────────────────────────────────
+# File Upload 
 MAX_FILE_SIZE_MB = 100
 SUPPORTED_EXTENSIONS = {
     ".pdf", ".docx", ".txt", ".pptx",
     ".xlsx", ".xls", ".csv", ".md",
 }
 
-# ─── Prompt Template ────────────────────────────────────────────────────────────
+# Prompt Template 
 RAG_PROMPT_TEMPLATE = """You are an intelligent assistant that answers questions based ONLY on the provided context from uploaded documents.
 
 Context:
@@ -65,5 +60,5 @@ Instructions:
 - Use bullet points or structured formatting when appropriate.
 """
 
-# ─── Logging ────────────────────────────────────────────────────────────────────
+# Logging 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
