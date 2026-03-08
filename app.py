@@ -1,11 +1,3 @@
-"""
-NeuralDoc — Main Application
-Chainlit-based multi-document RAG chat interface.
-
-Launch with:
-    chainlit run app.py -w
-"""
-
 import logging
 import chainlit as cl
 
@@ -21,11 +13,11 @@ from chat.chat_engine import ChatEngine
 from chat.memory import ChatMemory
 from utils.file_parser import validate_file, save_uploaded_file, get_file_type_emoji
 
-# ─── Initialize Logging ────────────────────────────────────────────────────────
+# Initialize Logging 
 setup_logging()
 logger = logging.getLogger(__name__)
 
-# ─── Global Components ──────────────────────────────────────────────────────────
+# Global Components 
 # These are initialized once and shared across sessions
 document_loader = DocumentLoader()
 chunker = DocumentChunker()
@@ -45,7 +37,7 @@ def get_vector_store() -> VectorStoreManager:
     return _vector_store_manager
 
 
-# ─── Chainlit Events ───────────────────────────────────────────────────────────
+# Chainlit Events 
 
 
 @cl.on_chat_start
@@ -82,7 +74,7 @@ async def on_message(message: cl.Message):
     """Handle incoming user messages and file uploads."""
     session_id = cl.user_session.get("id")
 
-    # ── Handle file uploads ─────────────────────────────────────────────
+    # Handle file uploads 
     if message.elements:
         await _handle_file_uploads(message.elements, session_id)
 
@@ -91,7 +83,7 @@ async def on_message(message: cl.Message):
             await _handle_query(message.content.strip(), session_id)
         return
 
-    # ── Handle text queries ─────────────────────────────────────────────
+    # Handle text queries 
     if message.content.strip():
         await _handle_query(message.content.strip(), session_id)
     else:
@@ -246,7 +238,7 @@ async def _handle_query(query: str, session_id: str) -> None:
         await response_msg.update()
 
 
-# ─── Chat Resume (for persistent sessions) ─────────────────────────────────────
+# Chat Resume (for persistent sessions) 
 
 
 @cl.on_chat_resume
