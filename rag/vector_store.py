@@ -4,6 +4,7 @@ Manages ChromaDB and FAISS vector stores for persistent document storage and ret
 """
 
 import logging
+import shutil
 from pathlib import Path
 from typing import Optional
 
@@ -178,3 +179,39 @@ class VectorStoreManager:
             logger.info("Deleted documents for session %s from ChromaDB.", session_id)
         except Exception as e:
             logger.warning("Failed to delete session documents: %s", e)
+
+    def clear_all_knowledge(self) -> None:
+        """Completely wipe all vector database collections and FAISS indices."""
+        try:
+            # 1. Clear ChromaDB logically first
+            if self._chroma_store is not None:
+                try:
+                    self._chroma_store.delete_collection()
+                except Exception as e:
+                    logger.warning("Could not delete Chroma collection: %s", e)
+                self._chroma_store = None
+            
+            # 2. Clear FAISS store
+            self._faiss_store = None
+            
+            # 3. Attempt physical deletion of indices
+            # On Windows, files might be locked. We try our best but don't crash if locked.
+            def safe_rmtree(path: str):
+                p = Path(path)
+                if p.exists():
+                    try:
+                        shutil.rmtree(path)
+                        p.mkdir(parents=True, exist_ok=True)
+                        logger.info("Successfully deleted directory: %s", path)
+                    except PermissionError:
+                        logger.warning("Directory %s is locked. Content cleared but folder remains.", path)
+                    except Exception as e:
+                        logger.error("Error deleting %s: %s", path, e)
+
+            safe_rmtree(self._chroma_path)
+            safe_rmtree(self._faiss_path)
+            
+            logger.info("Knowledge base clearing attempt completed.")
+        except Exception as e:
+            logger.error("Error in clear_all_knowledge: %s", e)
+            # We don't re-raise here to allow the UI to continue and clear other states

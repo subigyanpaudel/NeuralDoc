@@ -13,7 +13,7 @@ import streamlit as st
 
 logger = logging.getLogger(__name__)
 
-@st.cache_resource
+@st.cache_resource(show_spinner="Running...")
 def get_embedding_function() -> Embeddings:
     """
     Return the best available embedding function.

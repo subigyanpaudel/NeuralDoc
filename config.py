@@ -24,7 +24,7 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 genai_client = genai.Client(api_key=GOOGLE_API_KEY) if GOOGLE_API_KEY else None
 
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
 GEMINI_EMBEDDING_MODEL = "models/embedding-001"
 
 # Chunking 

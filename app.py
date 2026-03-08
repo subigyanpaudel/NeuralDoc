@@ -22,18 +22,33 @@ from rag.vector_store import VectorStoreManager
 from rag.retriever import DocumentRetriever
 from chat.chat_engine import ChatEngine
 from chat.memory import ChatMemory
-from utils.file_parser import validate_file, save_uploaded_file, get_file_type_emoji
+from utils.file_parser import validate_file, save_uploaded_file, get_file_type_emoji, purge_all_documents
 
 # Setup page
 st.set_page_config(page_title="NeuralDoc", page_icon="📄", layout="wide")
 
-# Custom CSS for ChatGPT-like UI
+# Custom CSS with Dynamic Theme Support
 st.markdown("""
 <style>
     .stApp { max-width: 1200px; margin: 0 auto; }
-    section[data-testid="stSidebar"] { background-color: #f7f7f8; border-right: 1px solid #e5e5e5; }
-    .stChatMessage { border-radius: 12px; padding: 10px; margin-bottom: 10px; }
-    [data-testid="stChatMessageUser"] { background-color: #f4f4f4; }
+    
+    /* Use Streamlit variables for sidebar to support dark mode */
+    section[data-testid="stSidebar"] { 
+        background-color: var(--secondary-background-color); 
+        border-right: 1px solid var(--border-color); 
+    }
+    
+    .stChatMessage { 
+        border-radius: 12px; 
+        padding: 10px; 
+        margin-bottom: 10px; 
+    }
+    
+    /* User message background that works in both modes */
+    [data-testid="stChatMessageUser"] { 
+        background-color: var(--secondary-background-color); 
+    }
+    
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
 </style>
@@ -44,7 +59,7 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 # Cache global components for Cloud stability
-@st.cache_resource
+@st.cache_resource(show_spinner="Running...")
 def get_global_components():
     return {
         "document_loader": DocumentLoader(),
@@ -52,7 +67,7 @@ def get_global_components():
         "chat_memory": ChatMemory(),
     }
 
-@st.cache_resource
+@st.cache_resource(show_spinner="Running...")
 def get_vector_store():
     # This also uses cached get_embedding_function() from rag.embeddings
     embedding_fn = get_embedding_function()
@@ -77,6 +92,13 @@ if "current_session_id" not in st.session_state:
     }
     chat_memory.create_session(initial_id)
 
+# Current Session Data - Define these once at the top level
+session_data = st.session_state.all_chats[st.session_state.current_session_id]
+messages = session_data["messages"]
+if "files" not in session_data:
+    session_data["files"] = []
+uploaded_files_history = session_data["files"]
+
 # Helper for Session Reset
 def start_new_chat():
     new_id = str(uuid.uuid4())
@@ -90,16 +112,37 @@ def start_new_chat():
 # Sidebar: Chat History & Diagnostic Status
 with st.sidebar:
     st.title("NeuralDoc")
-    if st.button("➕ New Chat", use_container_width=True):
+    if st.button("New Chat", use_container_width=True, icon=":material/add:"):
         start_new_chat()
         st.rerun()
 
     st.divider()
     
-    # Cloud Diagnostic: Database Status
+    # Cloud Diagnostic: Database Status & Document Management
     doc_count = vector_store.get_document_count()
-    st.info(f"📊 **Indexing Status**\n\nKnowledge Base: {doc_count} chunks")
+    st.info(f"Indexing Status\n\nKnowledge Base: {doc_count} chunks")
     
+    if uploaded_files_history:
+        st.caption("Active Documents")
+        for doc_name in list(uploaded_files_history):
+            col1, col2 = st.columns([0.8, 0.2])
+            col1.text(f"File: {doc_name}")
+            if col2.button("", key=f"del_{doc_name}", icon=":material/delete:", help="Remove this document"):
+                if asyncio.run(vector_store.delete_document(doc_name, st.session_state.current_session_id)):
+                    uploaded_files_history.remove(doc_name)
+                    st.toast(f"Removed '{doc_name}'")
+                    st.rerun()
+
+        st.divider()
+        st.subheader("System Reset")
+        if st.button("Purge Knowledge Base", use_container_width=True, icon=":material/dangerous:", help="WARNING: This will permanently delete all files and clear all indexed data."):
+            # Global purge
+            vector_store.clear_all_knowledge()
+            purge_all_documents()
+            uploaded_files_history.clear()
+            st.toast("Knowledge base has been completely purged.")
+            st.rerun()
+
     st.divider()
     st.subheader("Recent Chats")
     for sid in reversed(list(st.session_state.all_chats.keys())):
@@ -110,7 +153,7 @@ with st.sidebar:
             label_msg = chat_msgs[1]["content"] if chat_msgs[1]["role"] == "user" else chat_msgs[1]["content"]
             
         title = (label_msg[:25] + '...') if len(label_msg) > 25 else label_msg
-        if st.button(f"💬 {title}", key=f"btn_{sid}", use_container_width=True):
+        if st.button(title, key=f"btn_{sid}", use_container_width=True, icon=":material/chat:"):
             st.session_state.current_session_id = sid
             st.rerun()
 

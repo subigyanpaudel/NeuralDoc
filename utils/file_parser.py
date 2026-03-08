@@ -100,3 +100,22 @@ def cleanup_session_files(session_id: str) -> None:
     if session_dir.exists():
         shutil.rmtree(session_dir)
         logger.info("Cleaned up files for session: %s", session_id)
+
+
+def purge_all_documents() -> None:
+    """Physically remove all files and directories in document storage."""
+    try:
+        if DOCUMENT_STORAGE_PATH.exists():
+            for item in DOCUMENT_STORAGE_PATH.iterdir():
+                try:
+                    if item.is_dir():
+                        shutil.rmtree(item)
+                    else:
+                        item.unlink()
+                except PermissionError:
+                    logger.warning("Could not delete locked file/folder: %s", item)
+                except Exception as e:
+                    logger.error("Error deleting %s: %s", item, e)
+            logger.info("Document storage purge attempt completed.")
+    except Exception as e:
+        logger.error("Error purging documents: %s", e)
