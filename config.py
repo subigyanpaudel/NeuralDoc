@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 # Load environment variables FIRST
 load_dotenv()
 
-import google.generativeai as genai
+from google import genai
 
 # Base Paths 
 BASE_DIR = Path(__file__).resolve().parent
@@ -20,10 +20,10 @@ VECTOR_DB_PATH.mkdir(parents=True, exist_ok=True)
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # Google Gemini 
-api_key = os.getenv("GOOGLE_API_KEY", "")
-if api_key:
-    genai.configure(api_key=api_key)
-GOOGLE_API_KEY = api_key
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+genai_client = genai.Client(api_key=GOOGLE_API_KEY) if GOOGLE_API_KEY else None
+
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 GEMINI_EMBEDDING_MODEL = "models/embedding-001"
 
