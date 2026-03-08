@@ -171,6 +171,53 @@ class VectorStoreManager:
         except Exception:
             return 0
 
+    def get_document_stats(self) -> list[dict]:
+        """Return a list of documents with their chunk counts."""
+        try:
+            chroma = self._get_chroma()
+            results = chroma._collection.get(include=["metadatas"])
+            if not results or not results["metadatas"]:
+                return []
+            
+            stats = {}
+            for m in results["metadatas"]:
+                fname = m.get("filename")
+                if fname:
+                    stats[fname] = stats.get(fname, 0) + 1
+            
+            return [{"filename": f, "chunks": c} for f, c in sorted(stats.items())]
+        except Exception as e:
+            logger.error("Error fetching document stats: %s", e)
+            return []
+
+    async def delete_document(self, filename: str, session_id: str) -> bool:
+        """
+        Delete a specific document by its original filename and session ID.
+        
+        Args:
+            filename: The original filename to remove.
+            session_id: The session ID the document belongs to.
+            
+        Returns:
+            True if deletion was successful, False otherwise.
+        """
+        try:
+            # Delete from ChromaDB
+            chroma = self._get_chroma()
+            chroma._collection.delete(where={"$and": [{"filename": filename}, {"session_id": session_id}]})
+            
+            # Note: FAISS doesn't support easy individual deletion. 
+            # We recreate/reload FAISS or just rely on its next persistence cycle.
+            # For simplicity, we clear the in-memory FAISS store to force a reload
+            # from Chroma (or just use Chroma for the next searches).
+            self._faiss_store = None 
+            
+            logger.info("Deleted document '%s' for session %s from knowledge base.", filename, session_id)
+            return True
+        except Exception as e:
+            logger.error("Failed to delete document '%s': %s", filename, e)
+            return False
+
     def delete_session_documents(self, session_id: str) -> None:
         """Delete all documents associated with a session."""
         try:

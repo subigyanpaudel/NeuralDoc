@@ -207,3 +207,9 @@ class ChatMemory:
                 "UPDATE chat_sessions SET title = ? WHERE id = ?",
                 (title, session_id),
             )
+
+    def delete_session(self, session_id: str) -> None:
+        """Delete a chat session and all its messages."""
+        with self._get_connection() as conn:
+            conn.execute("DELETE FROM chat_sessions WHERE id = ?", (session_id,))
+        logger.info("Deleted chat session: %s", session_id)
